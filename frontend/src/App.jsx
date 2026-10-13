@@ -2,10 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { predictionSections, allPredictionFields } from '../prediction-field.js';
 
 const authors = [
-  { id: 'PROF-01', name: 'Dr. Ritesh Jha', role: 'FACULTY / SUPERVISOR', lead: true },
-  { id: 'STU-01', name: 'Saurabh Toppo', role: 'BTECH/10504/24' },
-  { id: 'STU-02', name: 'Himanshu Kumar Singh', role: 'BTECH/10535/24' },
-  { id: 'STU-03', name: 'Satyam Kumar', role: 'BTECH/10577/24' }
+  { id: 'PROFESSOR', name: 'Dr. Ritesh Jha', role: 'FACULTY / SUPERVISOR', lead: true },
+  { id: 'STUDENT-01', name: 'Saurabh Toppo', role: 'BTECH/10504/24' },
+  { id: 'STUDENT-02', name: 'Himanshu Kumar Singh', role: 'BTECH/10535/24' },
+  { id: 'STUDENT-03', name: 'Satyam Kumar', role: 'BTECH/10577/24' }
 ];
 
 const technologies = [
@@ -152,7 +152,7 @@ function AuthorsPage() {
         {authors.map((person) => (
           <HudCard
             key={person.id}
-            telemetry={`AUTH::${person.id}`}
+            telemetry={person.id}
             title={person.name}
             extra={person.lead ? 'lead' : ''}
           >
@@ -409,7 +409,7 @@ function PredictPage({ formData, setFormData, activeStep, setActiveStep, setResu
                 Step {step + 1} of {predictionSections.length}
               </p>
               <strong>
-                {Math.round(((step + 1) / predictionSections.length) * 100)}% complete
+                {Math.round(((step ) / predictionSections.length) * 100)}% complete
               </strong>
             </div>
             <ol className="assessment-stepper">
