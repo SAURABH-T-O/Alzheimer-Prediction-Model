@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+
+<html class="h-full w-full overflow-hidden bg-[#0b0d0e]" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
+<title>AlzAI - Neural Architecture &amp; Cognitive Profiling</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&amp;family=Space+Grotesk:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<script>
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Space Grotesk"', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
+          },
+          colors: {
+            hud: {
+              mint: '#4ef2bb',
+              glow: '#34d399',
+              darkbg: '#050708',
+              line: 'rgba(255, 255, 255, 0.08)',
+              panel: 'rgba(10, 15, 18, 0.72)',
+            }
+          }
+        }
+      }
+    }
+</script>
+<style data-purpose="hud-effects">
+  html, body {
+    width: 100vw;
+    height: 100vh;
+    min-height: 100dvh;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    position: relative;
+    background-color: #0b0d0e;
+  }
+
+  .text-glow-mint {
+    text-shadow: 0 0 12px rgba(78, 242, 187, 0.65), 0 0 24px rgba(78, 242, 187, 0.3);
+  }
+
+  .text-glow-white {
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.45);
+  }
+
+  .viewport-box {
+    box-shadow:
+      inset 0 0 35px rgba(78, 242, 187, 0.12),
+      0 0 28px rgba(78, 242, 187, 0.16),
+      0 0 1px 1px rgba(78, 242, 187, 0.55);
+  }
+
+  .writing-vertical-lr {
+    writing-mode: vertical-lr;
+  }
+
+  @keyframes laser-sweep {
+    0% { top: 0%; opacity: 0; }
+    15% { opacity: 0.9; }
+    85% { opacity: 0.9; }
+    100% { top: 100%; opacity: 0; }
+  }
+
+  .laser-beam {
+    animation: laser-sweep 3.6s ease-in-out infinite;
+  }
+
+  @keyframes idle-breathe {
+    0%, 100% {
+      transform: translateY(0px) rotateZ(0deg) scale(1);
+      filter: drop-shadow(0 0 16px rgba(78, 242, 187, 0.25));
+    }
+
+    50% {
+      transform: translateY(-4px) rotateZ(0.5deg) scale(1.015);
+      filter: drop-shadow(0 0 24px rgba(78, 242, 187, 0.42));
+    }
+  }
+
+  .brain-idle-float {
+    animation: idle-breathe 6s ease-in-out infinite;
+  }
+
+  @keyframes beacon-pulse {
+    0%, 100% { transform: scale(0.85); opacity: 0.3; }
+    50% { transform: scale(1.4); opacity: 0.95; }
+  }
+
+  .synaptic-node {
+    animation: beacon-pulse 2.2s infinite ease-in-out;
+  }
+</style>
+</head>
+
+<body class="w-screen h-screen min-h-[100dvh] m-0 p-0 overflow-hidden bg-[#0b0d0e] font-sans text-neutral-300 select-none relative">
+  <div class="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+    <div class="absolute inset-0 pointer-events-none" style="background: radial-gradient(circle 650px at 50% 50%, rgba(35, 95, 78, 0.28) 0%, rgba(7, 12, 15, 0.7) 55%, #0b0d0e 100%);"></div>
+
+    <div class="absolute inset-0 pointer-events-none opacity-25" style="background-size: 70px 70px; background-position: center center; background-image: linear-gradient(to right, rgba(255, 255, 255, 0.22) 1px, transparent 1px), linear-gradient(rgba(255, 255, 255, 0.22) 1px, transparent 1px);"></div>
+
+    <div class="absolute inset-0 pointer-events-none opacity-60" style="background-size: 70px 70px; background-position: center center; background-image: linear-gradient(to right, rgba(112, 255, 201, 0.45) 1px, transparent 1px), linear-gradient(rgba(112, 255, 201, 0.45) 1px, transparent 1px); mask-image: radial-gradient(circle 750px at 50% 50%, rgba(0,0,0,1) 0%, rgba(0,0,0,0.7) 45%, rgba(0,0,0,0.15) 85%, transparent 100%); -webkit-mask-image: radial-gradient(circle 750px at 50% 50%, rgba(0,0,0,1) 0%, rgba(0,0,0,0.7) 45%, rgba(0,0,0,0.15) 85%, transparent 100%);"></div>
+
+    <div class="absolute inset-0 pointer-events-none" style="background-size: 70px 70px; background-position: center center; background-image: linear-gradient(to right, rgba(112, 255, 201, 0.85) 1.2px, transparent 1.2px), linear-gradient(rgba(112, 255, 201, 0.85) 1.2px, transparent 1.2px); mask-image: radial-gradient(circle 420px at 50% 50%, rgba(0,0,0,1) 20%, rgba(0,0,0,0.55) 60%, rgba(0,0,0,0) 85%); -webkit-mask-image: radial-gradient(circle 420px at 50% 50%, rgba(0,0,0,1) 20%, rgba(0,0,0,0.55) 60%, rgba(0,0,0,0) 85%); filter: drop-shadow(0 0 8px rgba(78, 242, 187, 0.6));"></div>
+
+    <div class="absolute inset-0 pointer-events-none" style="background: radial-gradient(circle 380px at 50% 50%, rgba(78, 242, 187, 0.16) 0%, rgba(11, 43, 36, 0.08) 55%, transparent 80%);"></div>
+  </div>
+
+  <main class="relative z-10 w-full h-full min-h-[100dvh] flex flex-col justify-between overflow-hidden p-4 sm:p-6 md:px-12 md:py-8 lg:px-16 lg:py-8">
+    <header class="w-full flex items-center justify-between flex-shrink-0">
+      <div class="flex items-center gap-1 cursor-pointer group">
+        <span class="text-3xl md:text-4xl font-light tracking-wide text-white text-glow-white transition-transform group-hover:scale-105">Alz</span>
+        <span class="text-3xl md:text-4xl font-semibold text-hud-mint text-glow-mint transition-transform group-hover:scale-105">AI</span>
+      </div>
+
+      <nav class="flex items-center gap-4 sm:gap-6 md:gap-10 font-mono text-xs md:text-sm tracking-widest text-[#4ef2bb]/85">
+        <a class="hover:text-white hover:brightness-125 transition-all duration-200 tracking-wider" href="#about">[ABOUT]</a>
+        <a class="hover:text-white hover:brightness-125 transition-all duration-200 tracking-wider" href="#technology">[TECHNOLOGY USED]</a>
+        <a class="hover:text-white hover:brightness-125 transition-all duration-200 tracking-wider" href="#authors">[AUTHORS]</a>
+      </nav>
+    </header>
+
+    <section class="w-full flex-1 grid grid-cols-12 items-center min-h-0 py-2">
+      <div class="col-span-12 lg:col-span-3 flex flex-col justify-between h-[240px] sm:h-[300px] md:h-[380px] pointer-events-auto pr-2 md:pr-4">
+        <div>
+          <span class="font-mono text-[11px] md:text-xs uppercase tracking-[0.24em] text-neutral-400 font-medium">
+            01. NEURAL ARCHITECTURE
+          </span>
+        </div>
+
+        <div class="my-auto">
+          <h2 class="text-3xl sm:text-4xl lg:text-[42px] xl:text-[48px] font-normal leading-[1.08] tracking-wider text-white text-glow-white">
+            <span class="block whitespace-nowrap">EARLY</span>
+            <span class="block whitespace-nowrap">DETECTION</span>
+          </h2>
+        </div>
+
+        <div class="font-mono text-[10px] md:text-[11px] tracking-widest text-neutral-400/90 space-y-1">
+          <p class="font-medium">MODALITY: PET / MRI</p>
+          <p class="font-medium">METRICS: AUC: 0.94</p>
+        </div>
+      </div>
+
+      <div class="col-span-12 lg:col-span-6 flex flex-col items-center justify-center my-auto py-1">
+        <div class="relative w-[280px] sm:w-[340px] md:w-[380px] lg:w-[410px] xl:w-[430px] aspect-square rounded-[6px] viewport-box bg-[#070c0e]/80 backdrop-blur-sm border border-[#4ef2bb]/60 overflow-hidden flex items-center justify-center flex-shrink-0" id="reticle-container" style="background: radial-gradient(circle, rgba(7, 16, 17, 0.45) 0%, rgba(4, 8, 10, 0.85) 100%);">
+          <div class="absolute inset-0 pointer-events-none z-15" style="background-size: 70px 70px; background-position: center center; background-image: linear-gradient(to right, rgba(112, 255, 201, 0.25) 1px, transparent 1px), linear-gradient(rgba(112, 255, 201, 0.25) 1px, transparent 1px);"></div>
+
+          <div class="absolute top-1 left-1 w-2.5 h-2.5 border-t-2 border-l-2 border-[#4ef2bb] z-20 pointer-events-none"></div>
+          <div class="absolute top-1 right-1 w-2.5 h-2.5 border-t-2 border-r-2 border-[#4ef2bb] z-20 pointer-events-none"></div>
+          <div class="absolute bottom-1 left-1 w-2.5 h-2.5 border-b-2 border-l-2 border-[#4ef2bb] z-20 pointer-events-none"></div>
+          <div class="absolute bottom-1 right-1 w-2.5 h-2.5 border-b-2 border-r-2 border-[#4ef2bb] z-20 pointer-events-none"></div>
+
+          <div class="absolute top-2 left-4 right-4 flex justify-between items-center text-[8.5px] font-mono tracking-widest text-neutral-300/80 z-20 uppercase pointer-events-none">
+            <span>ELN-AMRTT</span>
+            <span>SWAW</span>
+            <span>PDN</span>
+            <span>REEN</span>
+            <span>TECN</span>
+            <span>XGS</span>
+          </div>
+
+          <div class="absolute left-2 top-1/2 -translate-y-1/2 writing-vertical-lr font-mono text-[7px] tracking-[0.3em] text-neutral-400/70 rotate-180 z-20 pointer-events-none select-none">
+            FE19 :: [10940] 0x4811 F81D ::- 0140
+          </div>
+
+          <div class="absolute right-2 top-1/2 -translate-y-1/2 writing-vertical-lr font-mono text-[7px] tracking-[0.26em] text-neutral-400/70 z-20 pointer-events-none select-none">
+            1.471 cmd :: Format: Qcm1 [1ms 3.014 G0x5T
+          </div>
+
+          <div class="absolute bottom-2 right-4 font-mono text-[8.5px] tracking-wider text-neutral-300/80 z-20 pointer-events-none">
+            clay-volt. Inman70c, Set Ep 230d]
+          </div>
+
+          <div class="w-full h-full relative z-10 flex items-center justify-center p-4 sm:p-6 select-none" style="perspective: 1000px;">
+            <div class="relative w-full h-full flex items-center justify-center transition-transform duration-150 ease-out" id="brain-tilt-layer" style="transform: rotateX(0deg) rotateY(0deg);">
+              <img
+                alt="3D Wireframe Brain Reconstruction"
+                class="brain-idle-float max-w-[88%] max-h-[88%] object-contain filter contrast-125 brightness-110 drop-shadow-[0_0_18px_rgba(78,242,187,0.3)] pointer-events-none"
+                src="https://lh3.googleusercontent.com/aida-public/AB6AXuBeXSxf-j9aylov0m6UOf31izcRDzRXiTBugH-dfNgjvQWv_qWkZzRfQ5E9UvI224SoxFDCr3IPpZeXwLdnfZzqU_ulh3JnDWAtAS77zrQRwD5QzcMSJDN-cPxVO4VxkElVcdJQr3WQ4VZiKfkeoq6Vg5lxT2sjhtFk6d886u5E8jJ__e3PnsiJqogjUOFhxUKg37BJyIdrcbDSryKTRwnxdbhpqMyE8vdSg1ZuyWLQTrKahCe85zvb7KfwIcLGp5ukF8c"
+              />
+
+              <div class="absolute top-[32%] left-[36%] w-1.5 h-1.5 rounded-full bg-[#70ffc9] shadow-[0_0_8px_#70ffc9] synaptic-node pointer-events-none"></div>
+              <div class="absolute top-[42%] left-[58%] w-2 h-2 rounded-full bg-[#4ef2bb] shadow-[0_0_10px_#4ef2bb] synaptic-node pointer-events-none" style="animation-delay: 0.8s;"></div>
+              <div class="absolute top-[56%] left-[44%] w-1.5 h-1.5 rounded-full bg-[#2fe4ab] shadow-[0_0_8px_#2fe4ab] synaptic-node pointer-events-none" style="animation-delay: 1.4s;"></div>
+              <div class="absolute top-[65%] left-[64%] w-1.5 h-1.5 rounded-full bg-[#53e2a6] shadow-[0_0_8px_#53e2a6] synaptic-node pointer-events-none" style="animation-delay: 0.4s;"></div>
+            </div>
+          </div>
+
+          <div class="absolute inset-x-0 laser-beam pointer-events-none z-15 flex flex-col items-center">
+            <div class="w-full h-[1.5px] bg-gradient-to-r from-transparent via-[#4ef2bb] to-transparent shadow-[0_0_12px_#4ef2bb]"></div>
+            <div class="w-full h-10 sm:h-12 bg-gradient-to-b from-[#4ef2bb]/15 to-transparent"></div>
+          </div>
+
+          <div class="absolute bottom-2 left-4 z-20 pointer-events-none flex items-center gap-2 font-mono text-[8px] text-[#4ef2bb]/80 tracking-widest uppercase">
+            <span class="inline-block w-1.5 h-1.5 rounded-full bg-[#4ef2bb] animate-ping"></span>
+            <span>SCAN: <span class="text-white">ACTIVE</span></span>
+            <span class="text-neutral-500">|</span>
+            <span>VOXELS: <span class="text-white">4.8M</span></span>
+          </div>
+
+          <div class="absolute inset-0 pointer-events-none flex items-center justify-center opacity-20 z-10">
+            <div class="w-full h-[1px] bg-gradient-to-r from-transparent via-[#4ef2bb] to-transparent"></div>
+            <div class="h-full w-[1px] bg-gradient-to-b from-transparent via-[#4ef2bb] to-transparent absolute"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-span-12 lg:col-span-3 flex flex-col justify-between h-[240px] sm:h-[300px] md:h-[380px] text-right pointer-events-auto pl-2 md:pl-4">
+        <div>
+          <span class="font-mono text-[11px] md:text-xs uppercase tracking-[0.24em] text-neutral-400 font-medium">
+            02. MOLECULAR BIOMARKERS
+          </span>
+        </div>
+
+        <div class="my-auto">
+          <h2 class="text-3xl sm:text-4xl lg:text-[42px] xl:text-[48px] font-normal leading-[1.08] tracking-wider text-white text-glow-white">
+            <span class="block whitespace-nowrap">COGNITIVE</span>
+            <span class="block whitespace-nowrap">PROFILING</span>
+          </h2>
+        </div>
+
+        <div class="font-mono text-[10px] md:text-[11px] tracking-widest text-neutral-400/90">
+          <p class="font-medium">FOCUS: EARLY-STAGE INTERVENTION</p>
+        </div>
+      </div>
+    </section>
+
+    <footer class="w-full pb-2 md:pb-4 pt-1 flex flex-col items-center justify-center flex-shrink-0">
+      <div class="mb-3 sm:mb-4">
+        <button
+          class="relative px-9 py-2.5 rounded-md border border-[#4ef2bb]/85 bg-gradient-to-b from-[#0b2b24]/50 to-[#041612]/80 text-[#5eead4] hover:text-white font-mono text-sm tracking-[0.3em] uppercase transition-all duration-300 shadow-[0_0_18px_rgba(78,242,187,0.25),inset_0_0_10px_rgba(78,242,187,0.1)] hover:shadow-[0_0_28px_rgba(78,242,187,0.5),inset_0_0_14px_rgba(78,242,187,0.3)] hover:border-[#4ef2bb] active:scale-95 focus:outline-none cursor-pointer"
+          data-purpose="trigger-prediction"
+          type="button"
+        >
+          <span class="whitespace-nowrap tracking-[0.3em]">PREDICT</span>
+        </button>
+      </div>
+
+      <div class="w-full flex items-center justify-center gap-[3.5%] opacity-25 pointer-events-none px-4 max-w-5xl">
+        <div class="h-3 w-[1px] bg-neutral-300"></div><div class="h-1.5 w-[1px] bg-neutral-400"></div><div class="h-1.5 w-[1px] bg-neutral-400"></div>
+        <div class="h-3 w-[1px] bg-neutral-300"></div><div class="h-1.5 w-[1px] bg-neutral-400"></div><div class="h-1.5 w-[1px] bg-neutral-400"></div>
+        <div class="h-3 w-[1px] bg-neutral-300"></div><div class="h-1.5 w-[1px] bg-neutral-400"></div><div class="h-1.5 w-[1px] bg-neutral-400"></div>
+        <div class="h-3 w-[1px] bg-neutral-300"></div><div class="h-1.5 w-[1px] bg-neutral-400"></div><div class="h-1.5 w-[1px] bg-neutral-400"></div>
+        <div class="h-3 w-[1px] bg-neutral-300"></div><div class="h-1.5 w-[1px] bg-neutral-400"></div><div class="h-1.5 w-[1px] bg-neutral-400"></div>
+        <div class="h-3 w-[1px] bg-neutral-300"></div><div class="h-1.5 w-[1px] bg-neutral-400"></div><div class="h-1.5 w-[1px] bg-neutral-400"></div>
+        <div class="h-3 w-[1px] bg-neutral-300"></div><div class="h-1.5 w-[1px] bg-neutral-400"></div><div class="h-1.5 w-[1px] bg-neutral-400"></div>
+        <div class="h-3 w-[1px] bg-neutral-300"></div><div class="h-1.5 w-[1px] bg-neutral-400"></div><div class="h-1.5 w-[1px] bg-neutral-400"></div>
+      </div>
+    </footer>
+  </main>
+
+  <script>
+    (function () {
+      const tiltLayer = document.getElementById('brain-tilt-layer');
+      const container = document.getElementById('reticle-container');
+
+      if (!tiltLayer || !container) return;
+
+      let targetRotateX = 0;
+      let targetRotateY = 0;
+      let currentRotateX = 0;
+      let currentRotateY = 0;
+
+      window.addEventListener('mousemove', (event) => {
+        const rect = container.getBoundingClientRect();
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
+
+        const deltaX = (event.clientX - centerX) / (window.innerWidth / 2);
+        const deltaY = (event.clientY - centerY) / (window.innerHeight / 2);
+
+        targetRotateY = Math.max(-14, Math.min(14, deltaX * 12));
+        targetRotateX = Math.max(-14, Math.min(14, -deltaY * 12));
+      });
+
+      window.addEventListener('mouseleave', () => {
+        targetRotateX = 0;
+        targetRotateY = 0;
+      });
+
+      function animate() {
+        currentRotateX += (targetRotateX - currentRotateX) * 0.08;
+        currentRotateY += (targetRotateY - currentRotateY) * 0.08;
+
+        tiltLayer.style.transform =
+          `rotateX(${currentRotateX.toFixed(2)}deg) rotateY(${currentRotateY.toFixed(2)}deg)`;
+
+        requestAnimationFrame(animate);
+      }
+
+      requestAnimationFrame(animate);
+    }());
+  </script>
+
+  <script>
+    (function () {
+      const go = (path) => {
+        const target = window.parent !== window ? window.parent : window;
+        target.location.hash = path;
+      };
+
+      document.querySelector('.group').addEventListener('click', () => go('/'));
+
+      document.querySelectorAll('nav a').forEach((link) => {
+        const label = link.textContent.replace(/[\[\]\s]/g, '');
+        const routes = {
+          ABOUT: '/about',
+          TECHNOLOGYUSED: '/technology',
+          AUTHORS: '/authors'
+        };
+
+        link.addEventListener('click', (event) => {
+          event.preventDefault();
+          go(routes[label]);
+        });
+      });
+
+      document
+        .querySelector('[data-purpose="trigger-prediction"]')
+        .addEventListener('click', () => go('/predict'));
+    }());
+  </script>
+</body>
+</html>
