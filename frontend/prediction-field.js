@@ -1,5 +1,3 @@
-/* Exact input contract for the Alzheimer's prediction model.
-   PatientID and DoctorInCharge are metadata; Diagnosis is the output, never an input. */
 export const yesNo = [{ value: '0', label: 'No' }, { value: '1', label: 'Yes' }];
 
 export const predictionSections = [

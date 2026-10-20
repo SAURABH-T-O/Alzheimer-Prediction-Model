@@ -198,6 +198,26 @@ async function predictPatient(formData) {
   };
 }
 
+function validateSection(section, data) {
+  const errors = {};
+  let isValid = true;
+
+  for (const field of section.fields) {
+    const val = data[field.name];
+    if (val === undefined || val === null || val === '') {
+      errors[field.name] = 'PLEASE COMPLETE THIS FIELD.';
+      isValid = false;
+    } else if (!field.options && (Number(val) < field.min || Number(val) > field.max)) {
+      errors[field.name] = `PLEASE ENTER A VALUE FROM ${field.min} TO ${field.max}.`;
+      isValid = false;
+    } else {
+      errors[field.name] = '';
+    }
+  }
+
+  return { isValid, errors };
+}
+
 function PredictPage({ formData, setFormData, activeStep, setActiveStep, setResult }) {
   const [errors, setErrors] = useState({});
   const [formError, setFormError] = useState('');
@@ -212,32 +232,10 @@ function PredictPage({ formData, setFormData, activeStep, setActiveStep, setResu
   };
 
   const validateVisibleSection = () => {
-    let valid = true;
-    const newErrors = { ...errors };
-
-    section.fields.forEach((field) => {
-      const value = formData[field.name];
-      newErrors[field.name] = '';
-      if (!value) {
-        newErrors[field.name] = 'PLEASE COMPLETE THIS FIELD.';
-        valid = false;
-        return;
-      }
-      if (!field.options && (Number(value) < field.min || Number(value) > field.max)) {
-        newErrors[field.name] = `PLEASE ENTER A VALUE FROM ${field.min} TO ${field.max}.`;
-        valid = false;
-      }
-    });
-
-    setErrors(newErrors);
-
-    if (!valid) {
-      setFormError('PLEASE REVIEW THE MARKED FIELDS BEFORE CONTINUING.');
-    } else {
-      setFormError('');
-    }
-
-    return valid;
+    const { isValid, errors: nextErrors } = validateSection(section, formData);
+    setErrors((prev) => ({ ...prev, ...nextErrors }));
+    setFormError(isValid ? '' : 'PLEASE REVIEW THE MARKED FIELDS BEFORE CONTINUING.');
+    return isValid;
   };
 
   const handleNext = () => {
@@ -252,28 +250,14 @@ function PredictPage({ formData, setFormData, activeStep, setActiveStep, setResu
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const firstInvalid = predictionSections.findIndex((sec) =>
-      sec.fields.some((field) => {
-        const val = formData[field.name];
-        return !val || (!field.options && (Number(val) < field.min || Number(val) > field.max));
-      })
+    const firstInvalidIndex = predictionSections.findIndex(
+      (sec) => !validateSection(sec, formData).isValid
     );
 
-    if (firstInvalid !== -1) {
-      setActiveStep(firstInvalid);
-      // Validate the newly active section so its errors are shown
-      const invalidSec = predictionSections[firstInvalid];
-      const newErrors = { ...errors };
-      invalidSec.fields.forEach((field) => {
-        const val = formData[field.name];
-        newErrors[field.name] = '';
-        if (!val) {
-          newErrors[field.name] = 'PLEASE COMPLETE THIS FIELD.';
-        } else if (!field.options && (Number(val) < field.min || Number(val) > field.max)) {
-          newErrors[field.name] = `PLEASE ENTER A VALUE FROM ${field.min} TO ${field.max}.`;
-        }
-      });
-      setErrors(newErrors);
+    if (firstInvalidIndex !== -1) {
+      setActiveStep(firstInvalidIndex);
+      const { errors: nextErrors } = validateSection(predictionSections[firstInvalidIndex], formData);
+      setErrors((prev) => ({ ...prev, ...nextErrors }));
       setFormError('PLEASE REVIEW THE MARKED FIELDS BEFORE CONTINUING.');
       return;
     }
@@ -663,7 +647,6 @@ export default function App() {
     return () => window.removeEventListener('hashchange', handleHashChange);
   }, []);
 
-  // Parallax tilt on #brain-frame if present
   useEffect(() => {
     const frame = document.querySelector('#brain-frame');
     if (!frame) return;

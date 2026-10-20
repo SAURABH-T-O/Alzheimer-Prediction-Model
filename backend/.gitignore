@@ -1,0 +1,16 @@
+.env
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.log
+models/*.pkl
+models/*.joblib
+models/*.pth
+models/*.pt
+models/*.onnx
+models/*.h5
+!models/.gitkeep
+

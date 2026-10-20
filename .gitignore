@@ -1,4 +1,59 @@
+# Node / Frontend
 node_modules/
 dist/
+dist-ssr/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Python / Backend
+.venv/
+venv/
+env/
+ENV/
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+coverage.xml
+*.log
+
+# Model weights / artifacts (kept locally; preserve folder with .gitkeep)
+backend/models/*.pkl
+backend/models/*.joblib
+backend/models/*.pth
+backend/models/*.pt
+backend/models/*.onnx
+backend/models/*.h5
+!backend/models/.gitkeep
+models/*.pkl
+models/*.joblib
+models/*.pth
+models/*.pt
+models/*.onnx
+models/*.h5
+!models/.gitkeep
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+*.env
+!*.env.example
+!**/*.env.example
+
+# OS & IDEs
 .DS_Store
-fix.txt
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
+*.swp
+*~
+
+

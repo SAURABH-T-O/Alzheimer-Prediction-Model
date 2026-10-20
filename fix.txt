@@ -1,2 +1,0 @@
-percentage error in form filling 
-category of form should be above the line
