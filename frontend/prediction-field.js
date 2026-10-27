@@ -2,7 +2,7 @@ export const yesNo = [{ value: '0', label: 'No' }, { value: '1', label: 'Yes' }]
 
 export const predictionSections = [
   { id: 'personal', label: 'Personal Information', description: 'Basic information used by the model. This model does not include occupation or marital status.', fields: [
-    { name: 'Age', label: 'Age', help: 'Enter your age in years.', min: 30, max: 90, step: 1 },
+    { name: 'Age', label: 'Age', help: 'Enter your age in years.', min: 60, max: 90, step: 1 },
     { name: 'Gender', label: 'Gender', help: 'Select the option recorded in your medical data.', options: [{ value: '0', label: 'Male' }, { value: '1', label: 'Female' }] },
     { name: 'Ethnicity', label: 'Ethnicity', help: 'Select the category used in the assessment dataset.', options: [{ value: '0', label: 'Caucasian' }, { value: '1', label: 'African American' }, { value: '2', label: 'Asian' }, { value: '3', label: 'Other' }] },
     { name: 'EducationLevel', label: 'Education level', help: 'Select your highest completed education level.', options: [{ value: '0', label: 'No formal education' }, { value: '1', label: 'High school' }, { value: '2', label: "Bachelor's degree" }, { value: '3', label: 'Higher education' }] },

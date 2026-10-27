@@ -1,57 +1,24 @@
-# AlzAI feature-prediction ML service
+# AlzAI prediction services
 
-This FastAPI service performs feature-based inference with the provided PyTorch model. It does not accept image uploads and does not provide MRI prediction.
+The website uses React for its interface and Express on Node.js for the application API. FastAPI runs only the feature-based inference that requires the supplied PyTorch model and scaler. The application does not use a database and does not save prediction requests or results.
 
-## Model files
-
-Copy these existing files into `backend/models/` without renaming them:
-
-- `model_param.pth`
-- `Scaler.pkl`
-
-The model is a binary PyTorch ANN. Its checkpoint tensor shapes define a `32 → 8 → 8 → 6 → 6 → 4 → 1` network with a final sigmoid output. The supplied scaler accepts the 32 dataset fields in the order declared in `app/ml/feature_definition.py`. The output is converted from a 0–1 sigmoid score into a 0–100 percentage. A class of `1` means the model score is at least 0.5; it is a model result, not a diagnosis.
-
-`PatientID` and `DoctorInCharge` are metadata. `Diagnosis` is the dataset target, so the API rejects it as input. SMOTE is not part of inference and is never applied to an individual request.
-
-## Setup
-
-From this `backend` folder, use PowerShell:
-
-```powershell
-python -m venv .venv
-.venv\Scripts\Activate.ps1
-pip install -r requirements.txt
-Copy-Item .env.example .env
-# Note: model_param.pth and Scaler.pkl are already present in .\models\
-uvicorn app.main:app --reload --port 8000
+```mermaid
+flowchart LR
+    A[React assessment form] -->|POST /api/prediction/predict| B[Express API on Node.js]
+    B -->|Validate fields and forward request| C[FastAPI inference service]
+    C --> D[Supplied Scaler.pkl]
+    D --> E[Supplied PyTorch model_param.pth]
+    E --> C
+    C -->|Probability and prediction class| B
+    B -->|Return result without storing it| A
 ```
 
-Set `FRONTEND_URL` in `.env` to the React app origin, normally `http://localhost:5173`. API documentation is available at `http://127.0.0.1:8000/docs`.
+FastAPI runs at `http://127.0.0.1:8000`. Express runs at `http://127.0.0.1:5000`. The Vite development server proxies `/api` requests to Express.
 
-## Endpoints
+Place the supplied `model_param.pth` and `Scaler.pkl` files in `backend/models/`. The service reports the model unavailable if either artifact is missing or cannot be loaded.
 
-- `GET /api/health`
-- `POST /api/prediction/predict`
+From the project root, run `npm install`, copy `.env.example` to `.env`, then run `npm run dev` to start the React and Express development servers. In another terminal, create and activate a Python virtual environment in `backend`, install `backend/requirements.txt`, and run `uvicorn app.main:app --reload --port 8000` from the `backend` folder.
 
-The POST body must contain the exact 32 model fields. A successful response has this shape:
+For a production frontend build, run `npm run build`. Express serves the generated files from `frontend/dist` when that directory exists.
 
-```json
-{
-  "success": true,
-  "data": {
-    "probability": 72.45,
-    "prediction": 1,
-    "status": "success"
-  }
-}
-```
-
-## Tests
-
-After copying the two artifacts and installing requirements:
-
-```powershell
-pytest
-```
-
-The tests load the supplied checkpoint and scaler. They do not use a fake model or a hardcoded prediction output.
+The prediction is informational and is not a medical diagnosis.

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { predictionSections, allPredictionFields } from '../prediction-field.js';
+import { parseQuickFill, validateFieldValue } from '../quickfill.js';
 
 const authors = [
   { id: 'PROFESSOR', name: 'Dr. Ritesh Jha', role: 'FACULTY / SUPERVISOR', lead: true },
@@ -171,14 +172,13 @@ function displayValue(field, value) {
 }
 
 async function predictPatient(formData) {
-  const baseUrl = window.ALZAI_CONFIG?.API_URL;
-  if (!baseUrl) throw new Error('PREDICTION SERVICE URL NOT CONFIGURED.');
+  const baseUrl = window.ALZAI_CONFIG?.API_URL || '/api';
   const payload = Object.fromEntries(
     Object.entries(formData).map(([key, value]) => [key, Number(value)])
   );
   let response;
   try {
-    response = await fetch(`${baseUrl.replace(/\/$/, '')}/api/prediction/predict`, {
+    response = await fetch(`${baseUrl.replace(/\/$/, '')}/prediction/predict`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
@@ -203,16 +203,8 @@ function validateSection(section, data) {
   let isValid = true;
 
   for (const field of section.fields) {
-    const val = data[field.name];
-    if (val === undefined || val === null || val === '') {
-      errors[field.name] = 'PLEASE COMPLETE THIS FIELD.';
-      isValid = false;
-    } else if (!field.options && (Number(val) < field.min || Number(val) > field.max)) {
-      errors[field.name] = `PLEASE ENTER A VALUE FROM ${field.min} TO ${field.max}.`;
-      isValid = false;
-    } else {
-      errors[field.name] = '';
-    }
+    errors[field.name] = validateFieldValue(field, data[field.name]);
+    if (errors[field.name]) isValid = false;
   }
 
   return { isValid, errors };
@@ -221,6 +213,10 @@ function validateSection(section, data) {
 function PredictPage({ formData, setFormData, activeStep, setActiveStep, setResult }) {
   const [errors, setErrors] = useState({});
   const [formError, setFormError] = useState('');
+  const [quickFillOpen, setQuickFillOpen] = useState(false);
+  const [quickFillText, setQuickFillText] = useState('');
+  const [quickFillMessage, setQuickFillMessage] = useState('');
+  const [quickFillHasErrors, setQuickFillHasErrors] = useState(false);
 
   const step = Math.min(activeStep, predictionSections.length - 1);
   const section = predictionSections[step];
@@ -229,6 +225,31 @@ function PredictPage({ formData, setFormData, activeStep, setActiveStep, setResu
   const handleInputChange = (name, value) => {
     setFormData((prev) => ({ ...prev, [name]: value }));
     setErrors((prev) => ({ ...prev, [name]: '' }));
+  };
+
+  const handleQuickFill = () => {
+    const { updates, issues } = parseQuickFill(quickFillText);
+    const importedNames = Object.keys(updates);
+
+    if (importedNames.length > 0) {
+      setFormData((previous) => ({ ...previous, ...updates }));
+      setErrors((previous) => {
+        const next = { ...previous };
+        importedNames.forEach((name) => { next[name] = ''; });
+        return next;
+      });
+    }
+
+    setQuickFillHasErrors(issues.length > 0);
+    if (importedNames.length > 0 && issues.length > 0) {
+      setQuickFillMessage(`Imported ${importedNames.length} field(s). ${issues.join(' ')}`);
+    } else if (importedNames.length > 0) {
+      setQuickFillMessage(
+        `Imported ${importedNames.length} field(s). Review and edit them as needed, then choose Generate Prediction when ready.`,
+      );
+    } else {
+      setQuickFillMessage(issues.join(' '));
+    }
   };
 
   const validateVisibleSection = () => {
@@ -426,6 +447,51 @@ function PredictPage({ formData, setFormData, activeStep, setActiveStep, setResu
               <p>{section.description}</p>
             </header>
 
+            <section className="quickfill-card" aria-labelledby="quickfill-title">
+              <div className="quickfill-heading">
+                <div>
+                  <h3 id="quickfill-title">QuickFill</h3>
+                  <p>Paste JSON using the form field names. Fields you leave out will keep their current values.</p>
+                </div>
+                <button
+                  className="assessment-button secondary quickfill-toggle"
+                  type="button"
+                  aria-expanded={quickFillOpen}
+                  aria-controls="quickfill-panel"
+                  onClick={() => setQuickFillOpen((open) => !open)}
+                >
+                  {quickFillOpen ? 'Close QuickFill' : 'QuickFill'}
+                </button>
+              </div>
+              {quickFillOpen && (
+                <div id="quickfill-panel" className="quickfill-panel">
+                  <label htmlFor="quickfill-json">JSON field values</label>
+                  <textarea
+                    id="quickfill-json"
+                    value={quickFillText}
+                    onChange={(event) => setQuickFillText(event.target.value)}
+                    placeholder={'{\n  "Age": 72,\n  "Gender": 0,\n  "MMSE": 25\n}'}
+                    rows={7}
+                    spellCheck="false"
+                  />
+                  <button
+                    className="assessment-button primary"
+                    type="button"
+                    onClick={handleQuickFill}
+                  >
+                    Import &amp; Fill Form
+                  </button>
+                  <p
+                    className={`quickfill-message${quickFillHasErrors ? ' has-errors' : ''}`}
+                    role="status"
+                    aria-live="polite"
+                  >
+                    {quickFillMessage}
+                  </p>
+                </div>
+              )}
+            </section>
+
             <div className="assessment-grid">
               {section.fields.map(renderField)}
             </div>
@@ -520,28 +586,11 @@ function ProcessingPage() {
 
 function ResultPage({ result, formData, onReset }) {
   const [showInputs, setShowInputs] = useState(false);
-  const [displayProb, setDisplayProb] = useState(0);
 
   useEffect(() => {
     if (!result) {
       navigate('/predict');
-      return;
     }
-
-    const target = Number(result.probability);
-    const started = performance.now();
-    let animId;
-
-    const draw = (now) => {
-      const val = Math.min(target, target * ((now - started) / 900));
-      setDisplayProb(val);
-      if (val < target) {
-        animId = requestAnimationFrame(draw);
-      }
-    };
-
-    animId = requestAnimationFrame(draw);
-    return () => cancelAnimationFrame(animId);
   }, [result]);
 
   if (!result) return null;
@@ -549,83 +598,71 @@ function ResultPage({ result, formData, onReset }) {
   const { probability, prediction } = result;
 
   return (
-    <Shell
-      active="predict"
-      telemetry="SYS::RESULT-05　 ANALYSIS::COMPLETE"
-      title="COGNITIVE<br>RISK PROFILE"
-    >
-      <div className="result-layout">
-        <section className="gauge-card">
-          <span>ALZHEIMER'S PROBABILITY</span>
-          <div
-            className="gauge"
-            style={{ '--p': `${probability * 3.6}deg` }}
-          >
-            <strong id="probability">
-              {displayProb.toFixed(1)}%
-            </strong>
+    <>
+      <Header active="predict" />
+      <main className="assessment-page result-page">
+        <section className="assessment-heading">
+          <div className="assessment-icon" aria-hidden="true">✓</div>
+          <div>
+            <p className="assessment-eyebrow">ASSESSMENT COMPLETE</p>
+            <h1>Prediction Result</h1>
+            <p className="assessment-subtitle">Here is the estimate returned by the prediction model.</p>
           </div>
-          <b>MODEL INFERENCE COMPLETE</b>
         </section>
-        <section className="result-data">
-          <HudCard telemetry="RESULT::STATUS" title="ANALYSIS STATUS">
-            <b>COMPLETE</b>
-          </HudCard>
-          <HudCard telemetry="RESULT::SOURCE" title="MODEL SOURCE">
-            <b>BACKEND INFERENCE API</b>
-          </HudCard>
-          <HudCard telemetry="RESULT::INPUT" title="INPUT STATUS">
-            <b>RECEIVED</b>
-          </HudCard>
-          <HudCard telemetry="RESULT::CLASS" title="PREDICTION CLASS">
-            <b>{prediction}</b>
-          </HudCard>
-        </section>
-      </div>
 
-      <div className="demo-note">
-        <b>RESEARCH PROTOTYPE</b>
-        <br />
-        This model output is not a medical diagnosis and must not be used as a
-        substitute for clinical assessment.
-      </div>
-
-      <button
-        className="hud-button"
-        id="toggle-inputs"
-        onClick={() => setShowInputs((prev) => !prev)}
-      >
-        {showInputs ? 'HIDE INPUT DATA' : 'VIEW INPUT DATA'}
-      </button>
-
-      <section
-        className={`input-summary ${showInputs ? '' : 'hidden'}`}
-        id="input-summary"
-      >
-        <h2>INPUT PARAMETERS</h2>
-        {allPredictionFields.map((f) => (
-          <p key={f.name}>
-            <span>{f.label}</span>
-            <b>{displayValue(f, formData[f.name])}</b>
+        <section className="result-card" aria-labelledby="result-score-title">
+          <p className="assessment-eyebrow">MODEL ESTIMATE</p>
+          <h2 id="result-score-title">Alzheimer's probability</h2>
+          <p className="result-score">{Number(probability).toFixed(1)}<span>%</span></p>
+          <p className="result-class">Model output class: <strong>{prediction}</strong></p>
+          <p className="result-disclaimer">
+            This is a model-generated estimate, not a medical diagnosis. Discuss health concerns and assessment results with a qualified healthcare professional.
           </p>
-        ))}
-      </section>
+        </section>
 
-      <div className="button-row">
-        <button
-          className="hud-button primary"
-          onClick={() => {
-            onReset();
-            navigate('/predict');
-          }}
-        >
-          RUN NEW ANALYSIS
-        </button>
-        <button className="hud-button" onClick={() => navigate('/')}>
-          RETURN TO SYSTEM
-        </button>
-      </div>
-    </Shell>
+        <section className="result-details-card">
+          <button
+            className="assessment-button secondary"
+            type="button"
+            aria-expanded={showInputs}
+            aria-controls="input-summary"
+            onClick={() => setShowInputs((previous) => !previous)}
+          >
+            {showInputs ? 'Hide entered information' : 'Review entered information'}
+          </button>
+          {showInputs && (
+            <dl className="input-summary" id="input-summary">
+              {allPredictionFields.map((field) => (
+                <div key={field.name}>
+                  <dt>{field.label}</dt>
+                  <dd>{displayValue(field, formData[field.name])}</dd>
+                </div>
+              ))}
+            </dl>
+          )}
+        </section>
+
+        <div className="result-actions">
+          <button
+            className="assessment-button primary"
+            type="button"
+            onClick={() => {
+              onReset();
+              navigate('/predict');
+            }}
+          >
+            Start a new assessment
+          </button>
+          <button
+            className="assessment-button secondary"
+            type="button"
+            onClick={() => navigate('/')}
+          >
+            Return to home
+          </button>
+        </div>
+      </main>
+    </>
   );
 }
 
