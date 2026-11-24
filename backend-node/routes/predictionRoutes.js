@@ -1,6 +1,6 @@
 import { Router } from 'express';
 
-import { ApiError, predictAssessment } from '../services/predictionService.js';
+import { ApiError, predictAssessment, predictMriScan } from '../services/predictionService.js';
 
 export const predictionRouter = Router();
 
@@ -15,6 +15,19 @@ predictionRouter.post('/prediction/predict', async (request, response, next) => 
     }
 
     const result = await predictAssessment(request.body);
+    response.json(result);
+  } catch (error) {
+    next(error);
+  }
+});
+
+predictionRouter.post('/prediction/mri', async (request, response, next) => {
+  try {
+    const result = await predictMriScan({
+      contentType: request.get('content-type'),
+      fileName: request.get('x-file-name'),
+      imageBytes: request.body,
+    });
     response.json(result);
   } catch (error) {
     next(error);

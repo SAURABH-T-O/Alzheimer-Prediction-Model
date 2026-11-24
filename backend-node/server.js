@@ -17,6 +17,10 @@ const frontendBuild = resolve(currentDirectory, '../frontend/dist');
 app.disable('x-powered-by');
 app.use(cors({ origin: frontendOrigin, methods: ['GET', 'POST'], allowedHeaders: ['Content-Type'] }));
 app.use(express.json({ limit: '32kb' }));
+app.use(
+  '/api/prediction/mri',
+  express.raw({ type: ['image/jpeg', 'image/png', 'image/webp'], limit: '10mb' }),
+);
 
 app.get('/api/health', (_request, response) => {
   response.json({

@@ -12,10 +12,11 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from app.api.routes import health, prediction
+from app.api.routes import health, mri_prediction, prediction
 from app.core.config import get_settings
 from app.core.logging import configure_logging
 from app.services.model_service import ModelService
+from app.services.mri_model_service import MriModelService
 from app.services.prediction_service import PredictionService
 from app.services.preprocessing_service import PreprocessingService
 from app.utils.errors import ModelUnavailableError, PredictionError
@@ -31,7 +32,10 @@ async def lifespan(app: FastAPI):
     preprocessing_service.load_scaler()
     model_service = ModelService(settings.model_path)
     model_service.load_model()
+    mri_model_service = MriModelService(settings.mri_model_path)
+    mri_model_service.load_model()
     app.state.model_service = model_service
+    app.state.mri_model_service = mri_model_service
     app.state.prediction_service = PredictionService(model_service, preprocessing_service)
     logger.info("AlzAI API started.")
     yield
@@ -62,6 +66,7 @@ app.add_middleware(
 )
 app.include_router(health.router, prefix="/api")
 app.include_router(prediction.router, prefix="/api")
+app.include_router(mri_prediction.router, prefix="/api")
 
 
 @app.exception_handler(RequestValidationError)

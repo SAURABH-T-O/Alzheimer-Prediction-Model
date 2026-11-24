@@ -14,9 +14,10 @@ class Settings(BaseSettings):
     frontend_url: str = "http://localhost:5173"
     model_path: Path = BACKEND_DIR / "models" / "model_param.pth"
     scaler_path: Path = BACKEND_DIR / "models" / "Scaler.pkl"
+    mri_model_path: Path = BACKEND_DIR / "models" / "alzy_model.pth"
     log_level: str = "INFO"
 
-    @field_validator("model_path", "scaler_path", mode="after")
+    @field_validator("model_path", "scaler_path", "mri_model_path", mode="after")
     @classmethod
     def resolve_relative_path(cls, v: Path) -> Path:
         if not v.is_absolute():

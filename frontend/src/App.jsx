@@ -24,7 +24,7 @@ function navigate(path) {
 function Header({ active = '' }) {
   const link = (href, label, key) => (
     <a
-      className={`nav-link ${active === key ? 'is-active' : ''}`}
+      className={`nav-link ${key === 'predict' ? 'nav-link-cta' : ''} ${active === key ? 'is-active' : ''}`}
       href={`#${href}`}
     >
       [{label}]
@@ -196,6 +196,134 @@ async function predictPatient(formData) {
     status: body.data.status,
     input: formData
   };
+}
+
+async function predictMriScan(file) {
+  const baseUrl = window.ALZAI_CONFIG?.API_URL || '/api';
+  let response;
+  try {
+    response = await fetch(`${baseUrl.replace(/\/$/, '')}/prediction/mri`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': file.type,
+        'X-File-Name': file.name
+      },
+      body: file
+    });
+  } catch (_) {
+    throw new Error('MRI PREDICTION SERVICE UNAVAILABLE.');
+  }
+  const body = await response.json().catch(() => null);
+  if (!response.ok || !body?.success) {
+    throw new Error(body?.error?.message?.toUpperCase() || body?.detail?.toUpperCase() || 'MRI PREDICTION REQUEST FAILED.');
+  }
+  return body.data;
+}
+
+function PredictionMethodPage() {
+  return (
+    <>
+      <Header active="predict" />
+      <main className="method-choice-page">
+        <p className="method-choice-kicker">PREDICTION OPTIONS</p>
+        <h1>Choose how you would like to continue</h1>
+        <p className="method-choice-intro">Select one option to begin an Alzheimer’s risk assessment.</p>
+        <section className="method-choice-grid" aria-label="Prediction methods">
+          <article className="method-choice-card">
+            <span className="method-choice-number" aria-hidden="true">01</span>
+            <h2>Upload an MRI scan</h2>
+            <p>Use an MRI image for brain-scan analysis.</p>
+            <button className="assessment-button primary" type="button" onClick={() => navigate('/predict/mri')}>
+              Upload MRI scan →
+            </button>
+          </article>
+          <article className="method-choice-card">
+            <span className="method-choice-number" aria-hidden="true">02</span>
+            <h2>Fill medical information</h2>
+            <p>Answer questions about health, lifestyle, and memory.</p>
+            <button className="assessment-button primary" type="button" onClick={() => navigate('/predict/medical')}>
+              Fill medical information →
+            </button>
+          </article>
+        </section>
+      </main>
+    </>
+  );
+}
+
+function MriPredictionPage({ setMriResult }) {
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [error, setError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleFileChange = (event) => {
+    const file = event.target.files?.[0] || null;
+    if (!file) return;
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+      setSelectedFile(null);
+      setError('PLEASE SELECT A JPEG, PNG, OR WEBP IMAGE.');
+      event.target.value = '';
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      setSelectedFile(null);
+      setError('THE IMAGE MUST BE 10 MB OR SMALLER.');
+      event.target.value = '';
+      return;
+    }
+    setSelectedFile(file);
+    setError('');
+  };
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    if (!selectedFile) {
+      setError('CHOOSE AN MRI IMAGE BEFORE CONTINUING.');
+      return;
+    }
+    setIsSubmitting(true);
+    setError('');
+    try {
+      const result = await predictMriScan(selectedFile);
+      setMriResult(result);
+      navigate('/mri-result');
+    } catch (err) {
+      setError(err.message || 'MRI PREDICTION SERVICE UNAVAILABLE.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <>
+      <Header active="predict" />
+      <main className="mri-upload-page">
+        <p className="mri-upload-kicker">MRI SCAN ANALYSIS</p>
+        <h1>Upload an MRI scan</h1>
+        <p className="mri-upload-intro">Choose a scan image to continue with MRI-based analysis.</p>
+        <section className="mri-simple-card">
+          <h2>Select your scan image</h2>
+          <p>Accepted formats: JPEG, PNG, or WebP. Maximum file size: 10 MB.</p>
+          <form onSubmit={handleSubmit} noValidate>
+            <label className="mri-file-input" htmlFor="mri-file">
+              <span>Choose MRI image</span>
+              <input id="mri-file" type="file" accept="image/jpeg,image/png,image/webp" onChange={handleFileChange} />
+            </label>
+            <p className="mri-file-name" aria-live="polite">{selectedFile ? selectedFile.name : 'No image selected'}</p>
+            {error && <p className="mri-error" role="alert">{error}</p>}
+            <div className="button-row">
+              <button className="assessment-button secondary" type="button" onClick={() => navigate('/predict')}>
+                ← Back
+              </button>
+              <button className="assessment-button primary" type="submit" disabled={isSubmitting}>
+                {isSubmitting ? 'Analyzing scan…' : 'Analyze scan →'}
+              </button>
+            </div>
+          </form>
+        </section>
+      </main>
+    </>
+  );
 }
 
 function validateSection(section, data) {
@@ -666,6 +794,44 @@ function ResultPage({ result, formData, onReset }) {
   );
 }
 
+function MriResultPage({ result, onReset }) {
+  useEffect(() => {
+    if (!result) navigate('/predict/mri');
+  }, [result]);
+
+  if (!result) return null;
+
+  return (
+    <>
+      <Header active="predict" />
+      <main className="assessment-page result-page">
+        <section className="assessment-heading">
+          <div className="assessment-icon" aria-hidden="true">✓</div>
+          <div>
+            <p className="assessment-eyebrow">MRI ANALYSIS COMPLETE</p>
+            <h1>Scan Result</h1>
+            <p className="assessment-subtitle">Here is the classification returned by the MRI model.</p>
+          </div>
+        </section>
+        <section className="result-card" aria-labelledby="mri-result-title">
+          <p className="assessment-eyebrow">MRI MODEL OUTPUT</p>
+          <h2 id="mri-result-title">{result.predictedStage}</h2>
+          <p className="result-class">Dementia detected by model: <strong>{result.dementiaDetected}</strong></p>
+          <p className="result-disclaimer">This is a model-generated classification, not a medical diagnosis. Discuss scan results and health concerns with a qualified healthcare professional.</p>
+        </section>
+        <div className="result-actions">
+          <button className="assessment-button primary" type="button" onClick={() => { onReset(); navigate('/predict/mri'); }}>
+            Analyze another MRI
+          </button>
+          <button className="assessment-button secondary" type="button" onClick={() => navigate('/predict')}>
+            Choose prediction method
+          </button>
+        </div>
+      </main>
+    </>
+  );
+}
+
 export default function App() {
   const [currentRoute, setCurrentRoute] = useState(
     location.hash.replace('#', '') || '/'
@@ -673,6 +839,7 @@ export default function App() {
   const [formData, setFormData] = useState({});
   const [activeStep, setActiveStep] = useState(0);
   const [result, setResult] = useState(null);
+  const [mriResult, setMriResult] = useState(null);
 
   useEffect(() => {
     const handleHashChange = () => {
@@ -708,6 +875,7 @@ export default function App() {
     setFormData({});
     setActiveStep(0);
     setResult(null);
+    setMriResult(null);
   };
 
   return (
@@ -716,7 +884,8 @@ export default function App() {
       {currentRoute === '/about' && <AboutPage />}
       {currentRoute === '/technology' && <TechnologyPage />}
       {currentRoute === '/authors' && <AuthorsPage />}
-      {currentRoute === '/predict' && (
+      {currentRoute === '/predict' && <PredictionMethodPage />}
+      {currentRoute === '/predict/medical' && (
         <PredictPage
           formData={formData}
           setFormData={setFormData}
@@ -725,6 +894,7 @@ export default function App() {
           setResult={setResult}
         />
       )}
+      {currentRoute === '/predict/mri' && <MriPredictionPage setMriResult={setMriResult} />}
       {currentRoute === '/processing' && <ProcessingPage />}
       {currentRoute === '/prediction-result' && (
         <ResultPage
@@ -732,6 +902,9 @@ export default function App() {
           formData={formData}
           onReset={handleReset}
         />
+      )}
+      {currentRoute === '/mri-result' && (
+        <MriResultPage result={mriResult} onReset={() => setMriResult(null)} />
       )}
     </div>
   );

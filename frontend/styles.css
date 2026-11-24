@@ -114,6 +114,29 @@ body {
   text-shadow: 0 0 12px var(--mint);
 }
 
+.nav-link-cta {
+  padding: 10px 15px;
+  border: 1px solid rgba(78, 242, 187, .78);
+  border-radius: 8px;
+  background: rgba(11, 54, 44, .92);
+  color: #f1fff9;
+  font-weight: 700;
+  opacity: 1;
+  box-shadow: 0 0 16px rgba(78, 242, 187, .22);
+  text-shadow: 0 0 8px rgba(78, 242, 187, .28);
+}
+
+.nav-link-cta:hover,
+.nav-link-cta:focus-visible,
+.nav-link-cta.is-active {
+  border-color: #b5ffe5;
+  background: #17634e;
+  color: #fff;
+  outline: 2px solid rgba(181, 255, 229, .8);
+  outline-offset: 3px;
+  text-shadow: 0 0 10px rgba(78, 242, 187, .5);
+}
+
 .page {
   position: relative;
   z-index: 1;
@@ -769,6 +792,224 @@ select {
   margin-top: 22px;
 }
 
+.prediction-methods {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+  max-width: 980px;
+}
+
+.method-choice-page {
+  position: relative;
+  z-index: 1;
+  width: min(940px, calc(100% - 48px));
+  margin: clamp(46px, 8vh, 100px) auto 80px;
+}
+
+.method-choice-kicker {
+  margin: 0 0 12px;
+  color: var(--mint);
+  font: 600 .72rem 'JetBrains Mono', monospace;
+  letter-spacing: .16em;
+}
+
+.method-choice-page h1 {
+  max-width: 730px;
+  margin: 0;
+  font-size: clamp(2.1rem, 5vw, 4.1rem);
+  line-height: 1.05;
+  letter-spacing: -.04em;
+}
+
+.method-choice-intro {
+  max-width: 610px;
+  margin: 18px 0 34px;
+  color: #b9c8c3;
+  font-size: clamp(1rem, 1.8vw, 1.12rem);
+  line-height: 1.6;
+}
+
+.method-choice-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.method-choice-card {
+  min-height: 280px;
+  padding: clamp(24px, 4vw, 38px);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  border: 1px solid rgba(150, 201, 187, .34);
+  border-radius: 14px;
+  background: rgba(10, 22, 22, .84);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, .15);
+}
+
+.method-choice-card:hover {
+  border-color: rgba(78, 242, 187, .75);
+}
+
+.method-choice-number {
+  color: var(--mint);
+  font: 600 .78rem 'JetBrains Mono', monospace;
+  letter-spacing: .14em;
+}
+
+.method-choice-card h2 {
+  margin: 24px 0 10px;
+  color: #fff;
+  font-size: clamp(1.28rem, 2.5vw, 1.65rem);
+  font-weight: 600;
+}
+
+.method-choice-card p {
+  max-width: 360px;
+  margin: 0;
+  color: #b9c8c3;
+  line-height: 1.6;
+}
+
+.method-choice-card .assessment-button {
+  margin-top: auto;
+  min-height: 52px;
+}
+
+.prediction-method-card {
+  min-height: 270px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.prediction-method-card .hud-button {
+  margin-top: auto;
+}
+
+.mri-page {
+  max-width: 860px;
+}
+
+.mri-upload-page {
+  position: relative;
+  z-index: 1;
+  width: min(760px, calc(100% - 48px));
+  margin: clamp(46px, 8vh, 100px) auto 80px;
+}
+
+.mri-upload-kicker {
+  margin: 0 0 12px;
+  color: var(--mint);
+  font: 600 .72rem 'JetBrains Mono', monospace;
+  letter-spacing: .16em;
+}
+
+.mri-upload-page h1 {
+  margin: 0;
+  font-size: clamp(2.1rem, 5vw, 4.1rem);
+  line-height: 1.05;
+  letter-spacing: -.04em;
+}
+
+.mri-upload-intro {
+  margin: 18px 0 32px;
+  color: #b9c8c3;
+  font-size: clamp(1rem, 1.8vw, 1.12rem);
+  line-height: 1.6;
+}
+
+.mri-simple-card {
+  padding: clamp(24px, 4vw, 38px);
+  border: 1px solid rgba(150, 201, 187, .34);
+  border-radius: 14px;
+  background: rgba(10, 22, 22, .84);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, .15);
+}
+
+.mri-simple-card h2 {
+  margin: 0 0 8px;
+  color: #fff;
+  font-size: clamp(1.25rem, 2.5vw, 1.6rem);
+}
+
+.mri-simple-card > p {
+  margin: 0;
+  color: #b9c8c3;
+  line-height: 1.6;
+}
+
+.mri-simple-card form {
+  margin-top: 26px;
+}
+
+.mri-upload-card {
+  max-width: 760px;
+}
+
+.mri-upload-card > p {
+  max-width: 610px;
+}
+
+.mri-upload-card form {
+  margin-top: 26px;
+}
+
+.mri-file-input {
+  width: min(100%, 460px);
+  min-height: 128px;
+  padding: 20px;
+  display: grid;
+  place-content: center;
+  border: 1px dashed rgba(78, 242, 187, .72);
+  background: rgba(5, 18, 16, .72);
+  color: var(--mint);
+  cursor: pointer;
+  text-align: center;
+  font: 600 .78rem 'JetBrains Mono', monospace;
+  letter-spacing: .12em;
+}
+
+.mri-file-input:hover,
+.mri-file-input:focus-within {
+  border-color: #c6ffe9;
+  box-shadow: 0 0 18px rgba(78, 242, 187, .2);
+}
+
+.mri-file-input input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.mri-file-name,
+.mri-help,
+.mri-error {
+  margin: 12px 0 0;
+  font: 500 .76rem/1.5 'JetBrains Mono', monospace;
+  letter-spacing: .06em;
+}
+
+.mri-file-name {
+  color: #e9f8f2;
+  overflow-wrap: anywhere;
+}
+
+.mri-help {
+  color: var(--muted);
+}
+
+.mri-error {
+  color: #ff9f9a;
+}
+
+.assessment-button:disabled {
+  cursor: wait;
+  opacity: .62;
+}
+
 .quickfill-card {
   margin: 0 0 24px;
   padding: 20px;
@@ -989,7 +1230,9 @@ select {
   .module-grid,
   .authors,
   .form-grid,
-  .result-layout {
+  .result-layout,
+  .prediction-methods,
+  .method-choice-grid {
     grid-template-columns: 1fr;
   }
 
@@ -1019,6 +1262,20 @@ select {
 
   .input-unit {
     min-height: 100px;
+  }
+
+  .method-choice-page {
+    width: calc(100% - 32px);
+    margin-top: 34px;
+  }
+
+  .mri-upload-page {
+    width: calc(100% - 32px);
+    margin-top: 34px;
+  }
+
+  .method-choice-card {
+    min-height: 230px;
   }
 }
 
