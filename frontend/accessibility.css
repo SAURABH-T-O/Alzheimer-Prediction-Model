@@ -1,6 +1,7 @@
 .assessment-page {
   width: min(1080px, calc(100% - 48px));
-  margin: 36px auto 88px;
+  margin: 36px auto 0;
+  padding-bottom: 96px;
   color: #17312e;
 }
 
@@ -50,12 +51,30 @@
 .assessment-button.secondary { border-color: #89a9a2; background: #fff; color: #284b45; }
 .assessment-button.secondary:hover { background: #f0f7f5; }
 
-body:has(.assessment-page) { background: #f3f8f6; }
-body:has(.assessment-page) .system-grid { display: none; }
-body:has(.assessment-page) .hud-header { width: min(1080px, calc(100% - 48px)); border-bottom: 1px solid #d4e3df; }
-body:has(.assessment-page) .brand { color: #163b35; text-shadow: none; }
-body:has(.assessment-page) .nav-link { color: #286d64; }
-body:has(.assessment-page) .nav-link.is-active { color: #124f47; text-shadow: none; }
+html:has(.assessment-page),
+body:has(.assessment-page),
+html.light-theme,
+body.light-theme {
+  background: #f3f8f6 !important;
+  background-color: #f3f8f6 !important;
+  min-height: 100%;
+}
+
+html:has(.assessment-page) .system-grid,
+body:has(.assessment-page) .system-grid,
+html.light-theme .system-grid,
+body.light-theme .system-grid {
+  display: none !important;
+}
+
+body:has(.assessment-page) .hud-header,
+body.light-theme .hud-header { width: min(1080px, calc(100% - 48px)); border-bottom: 1px solid #d4e3df; }
+body:has(.assessment-page) .brand,
+body.light-theme .brand { color: #163b35; text-shadow: none; }
+body:has(.assessment-page) .nav-link,
+body.light-theme .nav-link { color: #286d64; }
+body:has(.assessment-page) .nav-link.is-active,
+body.light-theme .nav-link.is-active { color: #124f47; text-shadow: none; }
 
 @media (max-width: 780px) {
   .assessment-page { width: min(100% - 28px, 620px); margin-top: 24px; }

@@ -15,6 +15,12 @@ html {
   background: var(--bg);
 }
 
+html.light-theme,
+html:has(.assessment-page) {
+  background: #f3f8f6 !important;
+  background-color: #f3f8f6 !important;
+}
+
 body {
   margin: 0;
   color: #e8efec;
@@ -25,6 +31,13 @@ body {
   ), var(--bg);
   font-family: 'Space Grotesk', sans-serif;
   min-height: 100vh;
+}
+
+body.light-theme,
+body:has(.assessment-page) {
+  background: #f3f8f6 !important;
+  background-color: #f3f8f6 !important;
+  color: #17312e;
 }
 
 .system-grid {
@@ -228,6 +241,10 @@ h1 {
   margin: 14px 0 10px;
   font-size: 1.18rem;
   font-weight: 500;
+}
+
+.hud-card > h2:first-child {
+  margin-top: 0;
 }
 
 .hud-card p {
@@ -956,24 +973,193 @@ select {
 }
 
 .mri-file-input {
-  width: min(100%, 460px);
-  min-height: 128px;
-  padding: 20px;
+  width: min(100%, 540px);
+  min-height: 148px;
+  padding: 24px;
   display: grid;
   place-content: center;
   border: 1px dashed rgba(78, 242, 187, .72);
+  border-radius: 10px;
   background: rgba(5, 18, 16, .72);
   color: var(--mint);
   cursor: pointer;
   text-align: center;
-  font: 600 .78rem 'JetBrains Mono', monospace;
-  letter-spacing: .12em;
+  transition: all .2s ease-out;
 }
 
 .mri-file-input:hover,
 .mri-file-input:focus-within {
   border-color: #c6ffe9;
-  box-shadow: 0 0 18px rgba(78, 242, 187, .2);
+  box-shadow: 0 0 20px rgba(78, 242, 187, .24);
+  background: rgba(7, 24, 21, .85);
+}
+
+.mri-file-input.is-dragging {
+  border-color: #b5ffe5;
+  background: rgba(14, 52, 43, .9);
+  box-shadow: 0 0 24px rgba(78, 242, 187, .4);
+}
+
+.mri-upload-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  pointer-events: none;
+}
+
+.mri-upload-icon-circle {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(78, 242, 187, .12);
+  border: 1px solid rgba(78, 242, 187, .35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--mint);
+  margin-bottom: 2px;
+}
+
+.mri-upload-primary {
+  font: 600 .92rem 'JetBrains Mono', monospace;
+  color: #effff9;
+  letter-spacing: .08em;
+}
+
+.mri-upload-hint {
+  font: 400 .76rem 'Space Grotesk', sans-serif;
+  color: #8fa7a0;
+  letter-spacing: normal;
+}
+
+/* Selected File Card */
+.mri-selected-card {
+  width: min(100%, 540px);
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  border: 1px solid rgba(78, 242, 187, .7);
+  border-radius: 10px;
+  background: rgba(6, 22, 19, .88);
+  box-shadow: 0 0 22px rgba(78, 242, 187, .18), inset 0 0 20px rgba(78, 242, 187, .06);
+  animation: mriFadeIn .25s ease-out;
+}
+
+.mri-selected-preview {
+  width: 90px;
+  height: 90px;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid rgba(78, 242, 187, .5);
+  background: #000;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mri-selected-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.mri-selected-details {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.mri-selected-badge {
+  font: 700 .68rem 'JetBrains Mono', monospace;
+  color: var(--mint);
+  letter-spacing: .12em;
+  text-shadow: 0 0 10px rgba(78, 242, 187, .5);
+}
+
+.mri-selected-filename {
+  font: 600 .98rem/1.3 'JetBrains Mono', monospace;
+  color: #ffffff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mri-selected-meta {
+  font: 500 .74rem 'JetBrains Mono', monospace;
+  color: #8da49d;
+  letter-spacing: .04em;
+}
+
+.mri-selected-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 6px;
+}
+
+.mri-action-change {
+  display: inline-block;
+  font: 600 .74rem 'JetBrains Mono', monospace;
+  color: var(--mint);
+  background: rgba(78, 242, 187, .12);
+  border: 1px solid rgba(78, 242, 187, .45);
+  border-radius: 5px;
+  padding: 4px 10px;
+  cursor: pointer;
+  transition: all .2s;
+  letter-spacing: .04em;
+}
+
+.mri-action-change:hover {
+  background: rgba(78, 242, 187, .25);
+  border-color: #b5ffe5;
+  color: #fff;
+}
+
+.mri-action-change input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.mri-action-remove {
+  background: transparent;
+  border: none;
+  font: 500 .74rem 'JetBrains Mono', monospace;
+  color: #ff9f9a;
+  cursor: pointer;
+  padding: 4px 6px;
+  transition: color .2s;
+  letter-spacing: .04em;
+}
+
+.mri-action-remove:hover {
+  color: #ffc4c1;
+  text-decoration: underline;
+}
+
+@keyframes mriFadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 520px) {
+  .mri-selected-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  .mri-selected-preview {
+    width: 100%;
+    height: 140px;
+  }
 }
 
 .mri-file-input input {

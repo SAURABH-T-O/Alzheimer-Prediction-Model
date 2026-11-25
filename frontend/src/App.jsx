@@ -10,10 +10,26 @@ const authors = [
 ];
 
 const technologies = [
-  ['01', 'MACHINE LEARNING', 'Placeholder description for the neural architecture used by the AlzAI prediction system.'],
-  ['02', 'DATA PROCESSING', 'Placeholder description for data preprocessing and feature preparation.'],
-  ['03', 'BIOMARKER ANALYSIS', 'Placeholder description for neurological and cognitive feature analysis.'],
-  ['04', 'PREDICTION ENGINE', 'Placeholder description for the final classification stage.']
+  [
+    '01',
+    'NEURAL NETWORK MODELS',
+    'Two custom PyTorch models: a feedforward ANN that analyzes 32 clinical biomarkers, and a Convolutional Neural Network (CNN) that classifies brain MRI scans into dementia stages.'
+  ],
+  [
+    '02',
+    'DATA & IMAGE PREPROCESSING',
+    'Automated preprocessing using Scikit-learn to scale patient health numbers, and OpenCV with Torchvision to resize and prepare MRI images (224×224) for model inference.'
+  ],
+  [
+    '03',
+    'PYTHON ML MICROSERVICE',
+    'A fast Python backend powered by FastAPI that validates user inputs with Pydantic, runs the PyTorch models in real time, and reports system health status.'
+  ],
+  [
+    '04',
+    'API GATEWAY & WEB INTERFACE',
+    'A Node.js Express server that safely handles API requests and image uploads, connecting to a responsive React 19 single-page application with a futuristic HUD interface.'
+  ]
 ];
 
 function navigate(path) {
@@ -51,7 +67,7 @@ function Shell({ active, telemetry, title, children }) {
     <>
       <Header active={active} />
       <main className="page">
-        <div className="page-kicker">{telemetry}</div>
+        {telemetry && <div className="page-kicker">{telemetry}</div>}
         <h1 dangerouslySetInnerHTML={{ __html: title }} />
         {children}
       </main>
@@ -62,7 +78,7 @@ function Shell({ active, telemetry, title, children }) {
 function HudCard({ telemetry, title, children, extra = '' }) {
   return (
     <section className={`hud-card ${extra}`}>
-      <span className="card-telemetry">{telemetry}</span>
+      {telemetry && <span className="card-telemetry">{telemetry}</span>}
       <h2>{title}</h2>
       {children}
     </section>
@@ -92,30 +108,46 @@ function AboutPage() {
   return (
     <Shell
       active="about"
-      telemetry="SYS::ABOUT-01"
       title="EARLY DETECTION.<br>INTELLIGENT ANALYSIS."
     >
       <div className="wide-copy">
         <HudCard
-          telemetry="SYSTEM::OVERVIEW"
-          title="ALZAI IS AN EXPERIMENTAL INTELLIGENCE LAYER"
+          title="AI-POWERED COGNITIVE HEALTH ANALYSIS"
         >
           <p>
-            Designed to analyze neurological biomarkers and assist in identifying patterns
-            associated with early-stage cognitive decline.
+            AlzAI is a research platform designed for the early detection of Alzheimer’s disease.
+            It uses artificial intelligence to evaluate cognitive risk through two pathways:
+            everyday clinical health indicators and structural brain MRI scans.
           </p>
         </HudCard>
         <div className="metric-row">
-          <HudCard telemetry="DIAG::01" title="SYSTEM PURPOSE">
+          <HudCard title="SYSTEM PURPOSE">
             <b>EARLY DETECTION</b>
+            <p>
+              Identifies subtle patterns of cognitive decline before severe symptoms appear,
+              supporting timely medical guidance.
+            </p>
           </HudCard>
-          <HudCard telemetry="DIAG::02" title="ANALYSIS MODE">
-            <b>COGNITIVE PROFILING</b>
+          <HudCard title="ANALYSIS MODES">
+            <b>TWO INPUT MODES</b>
+            <p>
+              Allows flexible assessment using either 32 clinical health metrics or direct
+              brain MRI scan image uploads.
+            </p>
           </HudCard>
-          <HudCard telemetry="DIAG::03" title="CURRENT STATUS">
-            <b>RESEARCH PROTOTYPE</b>
+          <HudCard title="PRIVACY & PROTOCOL">
+            <b>PRIVACY FIRST</b>
+            <p>
+              All inputs and images are processed in-memory and immediately discarded without
+              storing anything in a database.
+            </p>
           </HudCard>
         </div>
+        <HudCard title="RESEARCH PROTOTYPE DISCLAIMER">
+          <p>
+            AlzAI is an academic research prototype. Results show estimated statistical risk and machine learning classifications for research purposes, not an official medical diagnosis.
+          </p>
+        </HudCard>
         <button className="hud-button" onClick={() => navigate('/')}>
           ← RETURN TO SYSTEM
         </button>
@@ -128,12 +160,11 @@ function TechnologyPage() {
   return (
     <Shell
       active="technology"
-      telemetry="SYS::TECH-02"
       title="NEURAL<br>INTELLIGENCE STACK"
     >
       <div className="module-grid">
         {technologies.map(([id, title, text]) => (
-          <HudCard key={id} telemetry={`MODULE::${id}`} title={title}>
+          <HudCard key={id} title={title}>
             <p>{text}</p>
           </HudCard>
         ))}
@@ -146,8 +177,7 @@ function AuthorsPage() {
   return (
     <Shell
       active="authors"
-      telemetry="SYS::AUTHORS-03"
-      title="RESEARCH<br>OPERATORS"
+      title="AUTHORS"
     >
       <div className="authors">
         {authors.map((person) => (
@@ -251,27 +281,71 @@ function PredictionMethodPage() {
   );
 }
 
+function formatFileSize(bytes) {
+  if (!bytes && bytes !== 0) return '';
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
+}
+
 function MriPredictionPage({ setMriResult }) {
   const [selectedFile, setSelectedFile] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState('');
+  const [isDragging, setIsDragging] = useState(false);
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleFileChange = (event) => {
-    const file = event.target.files?.[0] || null;
+  useEffect(() => {
+    if (!selectedFile) {
+      setPreviewUrl('');
+      return;
+    }
+    const url = URL.createObjectURL(selectedFile);
+    setPreviewUrl(url);
+    return () => URL.revokeObjectURL(url);
+  }, [selectedFile]);
+
+  const validateAndSetFile = (file) => {
     if (!file) return;
     if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
       setSelectedFile(null);
       setError('PLEASE SELECT A JPEG, PNG, OR WEBP IMAGE.');
-      event.target.value = '';
       return;
     }
     if (file.size > 10 * 1024 * 1024) {
       setSelectedFile(null);
       setError('THE IMAGE MUST BE 10 MB OR SMALLER.');
-      event.target.value = '';
       return;
     }
     setSelectedFile(file);
+    setError('');
+  };
+
+  const handleFileChange = (event) => {
+    const file = event.target.files?.[0] || null;
+    validateAndSetFile(file);
+    event.target.value = '';
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const file = e.dataTransfer?.files?.[0];
+    if (file) validateAndSetFile(file);
+  };
+
+  const handleRemove = () => {
+    setSelectedFile(null);
     setError('');
   };
 
@@ -305,17 +379,59 @@ function MriPredictionPage({ setMriResult }) {
           <h2>Select your scan image</h2>
           <p>Accepted formats: JPEG, PNG, or WebP. Maximum file size: 10 MB.</p>
           <form onSubmit={handleSubmit} noValidate>
-            <label className="mri-file-input" htmlFor="mri-file">
-              <span>Choose MRI image</span>
-              <input id="mri-file" type="file" accept="image/jpeg,image/png,image/webp" onChange={handleFileChange} />
-            </label>
-            <p className="mri-file-name" aria-live="polite">{selectedFile ? selectedFile.name : 'No image selected'}</p>
+            {!selectedFile ? (
+              <label
+                className={`mri-file-input ${isDragging ? 'is-dragging' : ''}`}
+                htmlFor="mri-file"
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+              >
+                <div className="mri-upload-content">
+                  <div className="mri-upload-icon-circle">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                      <polyline points="17 8 12 3 7 8"/>
+                      <line x1="12" y1="3" x2="12" y2="15"/>
+                    </svg>
+                  </div>
+                  <span className="mri-upload-primary">Choose MRI image</span>
+                  <span className="mri-upload-hint">or drag and drop your scan here</span>
+                </div>
+                <input id="mri-file" type="file" accept="image/jpeg,image/png,image/webp" onChange={handleFileChange} />
+              </label>
+            ) : (
+              <div className="mri-selected-card">
+                <div className="mri-selected-preview">
+                  <img src={previewUrl} alt="Selected MRI scan" />
+                </div>
+                <div className="mri-selected-details">
+                  <span className="mri-selected-badge">✓ SCAN ATTACHED</span>
+                  <div className="mri-selected-filename" title={selectedFile.name}>
+                    {selectedFile.name}
+                  </div>
+                  <div className="mri-selected-meta">
+                    {formatFileSize(selectedFile.size)} • {selectedFile.type.split('/')[1]?.toUpperCase() || 'IMAGE'}
+                  </div>
+                  <div className="mri-selected-actions">
+                    <label className="mri-action-change" htmlFor="mri-file-change">
+                      Change scan
+                      <input id="mri-file-change" type="file" accept="image/jpeg,image/png,image/webp" onChange={handleFileChange} />
+                    </label>
+                    <button type="button" className="mri-action-remove" onClick={handleRemove}>
+                      Remove
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {error && <p className="mri-error" role="alert">{error}</p>}
             <div className="button-row">
               <button className="assessment-button secondary" type="button" onClick={() => navigate('/predict')}>
                 ← Back
               </button>
-              <button className="assessment-button primary" type="submit" disabled={isSubmitting}>
+              <button className="assessment-button primary" type="submit" disabled={isSubmitting || !selectedFile}>
                 {isSubmitting ? 'Analyzing scan…' : 'Analyze scan →'}
               </button>
             </div>
@@ -346,6 +462,15 @@ function PredictPage({ formData, setFormData, activeStep, setActiveStep, setResu
   const [quickFillMessage, setQuickFillMessage] = useState('');
   const [quickFillHasErrors, setQuickFillHasErrors] = useState(false);
 
+  useEffect(() => {
+    document.documentElement.classList.add('light-theme');
+    document.body.classList.add('light-theme');
+    return () => {
+      document.documentElement.classList.remove('light-theme');
+      document.body.classList.remove('light-theme');
+    };
+  }, []);
+
   const step = Math.min(activeStep, predictionSections.length - 1);
   const section = predictionSections[step];
   const stepLabels = predictionSections.map((item) => item.label);
@@ -373,7 +498,7 @@ function PredictPage({ formData, setFormData, activeStep, setActiveStep, setResu
       setQuickFillMessage(`Imported ${importedNames.length} field(s). ${issues.join(' ')}`);
     } else if (importedNames.length > 0) {
       setQuickFillMessage(
-        `Imported ${importedNames.length} field(s). Review and edit them as needed, then choose Generate Prediction when ready.`,
+        `Imported ${importedNames.length} field(s). Review each step, then generate prediction on the final step.`,
       );
     } else {
       setQuickFillMessage(issues.join(' '));
@@ -387,17 +512,35 @@ function PredictPage({ formData, setFormData, activeStep, setActiveStep, setResu
     return isValid;
   };
 
-  const handleNext = () => {
+  const handleNext = (e) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
     if (!validateVisibleSection()) return;
-    setActiveStep((prev) => prev + 1);
+    setActiveStep((prev) => Math.min(predictionSections.length - 1, prev + 1));
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const handlePrev = () => {
+  const handlePrev = (e) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
     setActiveStep((prev) => Math.max(0, prev - 1));
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+
+    if (step < predictionSections.length - 1) {
+      handleNext(e);
+      return;
+    }
 
     const firstInvalidIndex = predictionSections.findIndex(
       (sec) => !validateSection(sec, formData).isValid
@@ -408,6 +551,7 @@ function PredictPage({ formData, setFormData, activeStep, setActiveStep, setResu
       const { errors: nextErrors } = validateSection(predictionSections[firstInvalidIndex], formData);
       setErrors((prev) => ({ ...prev, ...nextErrors }));
       setFormError('PLEASE REVIEW THE MARKED FIELDS BEFORE CONTINUING.');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
 
@@ -556,6 +700,16 @@ function PredictPage({ formData, setFormData, activeStep, setActiveStep, setResu
                       ? 'is-complete'
                       : ''
                   }
+                  style={{
+                    cursor: index < step || Object.keys(formData).length >= 5 ? 'pointer' : 'default',
+                    userSelect: 'none'
+                  }}
+                  onClick={() => {
+                    if (index < step || Object.keys(formData).length >= 5) {
+                      setActiveStep(index);
+                      window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }
+                  }}
                   {...(index === step ? { 'aria-current': 'step' } : {})}
                 >
                   <span>{index < step ? '✓' : index + 1}</span>
@@ -631,6 +785,7 @@ function PredictPage({ formData, setFormData, activeStep, setActiveStep, setResu
             <footer className="assessment-actions">
               {step > 0 ? (
                 <button
+                  key="btn-prev"
                   className="assessment-button secondary"
                   type="button"
                   onClick={handlePrev}
@@ -643,6 +798,7 @@ function PredictPage({ formData, setFormData, activeStep, setActiveStep, setResu
 
               {step < predictionSections.length - 1 ? (
                 <button
+                  key={`btn-next-${step}`}
                   className="assessment-button primary"
                   type="button"
                   onClick={handleNext}
@@ -650,7 +806,11 @@ function PredictPage({ formData, setFormData, activeStep, setActiveStep, setResu
                   Continue →
                 </button>
               ) : (
-                <button className="assessment-button primary" type="submit">
+                <button
+                  key="btn-submit"
+                  className="assessment-button primary"
+                  type="submit"
+                >
                   Generate Prediction →
                 </button>
               )}
@@ -714,6 +874,15 @@ function ProcessingPage() {
 
 function ResultPage({ result, formData, onReset }) {
   const [showInputs, setShowInputs] = useState(false);
+
+  useEffect(() => {
+    document.documentElement.classList.add('light-theme');
+    document.body.classList.add('light-theme');
+    return () => {
+      document.documentElement.classList.remove('light-theme');
+      document.body.classList.remove('light-theme');
+    };
+  }, []);
 
   useEffect(() => {
     if (!result) {
